@@ -57,6 +57,67 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  config.vm.provision "shell", name: "Disable ubuntu updates",
+    inline: <<-SHELL
+      systemctl stop unattended-upgrades || true
+    SHELL
 
+  config.vm.provision "shell", name: "Prepare the target disk",
+    inline: <<-SHELL
+      sfdisk /dev/vdb < /vagrant/vdb.sfdisk
+      mkfs.fat -F 32 /dev/vdb1
+      mkfs.ext4 /dev/vdb2
+    SHELL
+
+  config.vm.provision "shell", name: "Mount the target disk",
+    inline: <<-SHELL
+      mount /dev/vdb2 /mnt
+      mkdir -p /mnt/boot/efi
+      mount /dev/vdb1 /mnt/boot/efi
+    SHELL
+
+  config.vm.provision "shell", name: "Add target swap file",
+    inline: <<-SHELL
+      fallocate -l 4G /mnt/swapfile
+      chmod 0600 /mnt/swapfile
+      mkswap /mnt/swapfile
+      swapoff /swap.img
+      swapon /mnt/swapfile
+    SHELL
+
+  config.vm.provision "shell", name: "Install Arch installation tools",
+    inline: <<-SHELL
+      apt-get install -y libarchive-tools arch-install-scripts
+    SHELL
+
+  config.vm.provision "shell", name: "Untar the archive (this can take a while...)",
+    inline: <<-SHELL
+      bsdtar -xpf /vagrant/tmp/ArchLinuxARM-aarch64-latest.tar.gz -C /mnt
+    SHELL
+
+  config.vm.provision "shell", name: "Generate target fstab",
+    inline: <<-SHELL
+      genfstab -U /mnt >> /mnt/etc/fstab
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: initialize pacman",
+    inline: <<-SHELL
+      arch-chroot /mnt pacman-key --init
+      arch-chroot /mnt pacman-key --populate archlinuxarm
+      arch-chroot /mnt pacman -Syy
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: rebuild initramfs",
+    inline: <<-SHELL
+      #arch-chroot /mnt pacman -S linux --noconfirm
+      arch-chroot /mnt mkinitcpio -P
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: install GRUB",
+    inline: <<-SHELL
+      arch-chroot /mnt pacman -S grub efibootmgr --noconfirm
+      arch-chroot /mnt grub-install --target=arm64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+      arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+    SHELL
 
 end
