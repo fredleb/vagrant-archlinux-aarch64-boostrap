@@ -67,13 +67,14 @@ Vagrant.configure("2") do |config|
       sfdisk /dev/vdb < /vagrant/vdb.sfdisk
       mkfs.fat -F 32 /dev/vdb1
       mkfs.ext4 /dev/vdb2
+      e2label /dev/vdb2 arch_os
     SHELL
 
   config.vm.provision "shell", name: "Mount the target disk",
     inline: <<-SHELL
       mount /dev/vdb2 /mnt
-      mkdir -p /mnt/boot/efi
-      mount /dev/vdb1 /mnt/boot/efi
+      mkdir -p /mnt/boot
+      mount /dev/vdb1 /mnt/boot
     SHELL
 
   config.vm.provision "shell", name: "Add target swap file",
@@ -107,17 +108,11 @@ Vagrant.configure("2") do |config|
       arch-chroot /mnt pacman -Syy
     SHELL
 
-  config.vm.provision "shell", name: "Arch: rebuild initramfs",
+  config.vm.provision "shell", name: "Arch: prepare bootloader",
     inline: <<-SHELL
-      #arch-chroot /mnt pacman -S linux --noconfirm
-      arch-chroot /mnt mkinitcpio -P
-    SHELL
-
-  config.vm.provision "shell", name: "Arch: install GRUB",
-    inline: <<-SHELL
-      arch-chroot /mnt pacman -S grub efibootmgr --noconfirm
-      arch-chroot /mnt grub-install --target=arm64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
-      arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+      cp --recursive --no-preserve=mode,ownership /vagrant/boot/loader /mnt/boot/loader
+      arch-chroot /mnt bootctl install
+      arch-chroot /mnt bootctl update
     SHELL
 
 end
