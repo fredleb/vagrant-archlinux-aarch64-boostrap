@@ -115,4 +115,33 @@ Vagrant.configure("2") do |config|
       arch-chroot /mnt bootctl update
     SHELL
 
+  # The Arch linux VM could now boot on its own.
+  # Let's make it Vagrant compatible.
+
+  config.vm.provision "shell", name: "Arch: install sudo",
+    inline: <<-SHELL
+      arch-chroot /mnt pacman --needed --noconfirm -S sudo
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: set root password to \"vagrant\"",
+    inline: <<-SHELL
+      arch-chroot /mnt echo "root:vagrant" | arch-chroot /mnt chpasswd
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: add \"vagrant\" user",
+    inline: <<-SHELL
+      arch-chroot /mnt useradd -m vagrant
+      arch-chroot /mnt echo "vagrant:vagrant" | arch-chroot /mnt chpasswd
+      cp --recursive /vagrant/home /mnt/
+      arch-chroot /mnt chown -R vagrant:vagrant /home/vagrant
+      arch-chroot /mnt chmod -R 0600 /home/vagrant/.ssh
+      arch-chroot /mnt chmod 0700 /home/vagrant/.ssh
+      echo "vagrant ALL=(ALL) NOPASSWD: ALL" > /mnt/etc/sudoers.d/vagrant
+    SHELL
+
+  config.vm.provision "shell", name: "Arch: remove Arch's \"alarm\" user",
+    inline: <<-SHELL
+      arch-chroot /mnt userdel -r alarm
+    SHELL
+
 end
