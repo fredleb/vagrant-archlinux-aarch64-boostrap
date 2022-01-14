@@ -162,4 +162,9 @@ Vagrant.configure("2") do |config|
       arch-chroot /mnt pacman -Scc --noconfirm
     SHELL
 
+  config.vm.provision "shell", name: "Arch: blank machine-id",
+    inline: <<-SHELL
+      truncate -s 0 /mnt/etc/machine-id
+    SHELL
+
 end
