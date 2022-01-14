@@ -144,4 +144,17 @@ Vagrant.configure("2") do |config|
       arch-chroot /mnt userdel -r alarm
     SHELL
 
+  config.vm.provision "shell", name: "Arch: install AUR package helper",
+    inline: <<-SHELL
+      arch-chroot /mnt pacman --needed --noconfirm -S git base-devel go
+
+      arch-chroot /mnt sudo -u vagrant bash -xc "\
+        cd ~vagrant && \
+        git clone https://aur.archlinux.org/yay.git && \
+        pushd yay && \
+        makepkg -si --noconfirm && \
+        popd && \
+        rm -rf yay"
+    SHELL
+
 end
