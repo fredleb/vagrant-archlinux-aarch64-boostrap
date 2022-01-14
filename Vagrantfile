@@ -101,6 +101,11 @@ Vagrant.configure("2") do |config|
       genfstab -U /mnt >> /mnt/etc/fstab
     SHELL
 
+  config.vm.provision "shell", name: "Arch: use my own mirrorlist",
+    inline: <<-SHELL
+       cp /vagrant/etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+    SHELL
+
   config.vm.provision "shell", name: "Arch: initialize pacman",
     inline: <<-SHELL
       arch-chroot /mnt pacman-key --init

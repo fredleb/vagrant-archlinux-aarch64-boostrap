@@ -1,0 +1,1 @@
+Server = http://192.168.22.30:9900/repo/archlinux_$arch/$arch/$repo
