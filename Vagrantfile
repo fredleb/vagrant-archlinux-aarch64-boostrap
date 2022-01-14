@@ -157,4 +157,9 @@ Vagrant.configure("2") do |config|
         rm -rf yay"
     SHELL
 
+  config.vm.provision "shell", name: "Arch: empty pacman's cache",
+    inline: <<-SHELL
+      arch-chroot /mnt pacman -Scc --noconfirm
+    SHELL
+
 end
