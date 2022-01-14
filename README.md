@@ -47,3 +47,36 @@ Then use the "clone" of the Virtual Machine Manager:
 Go to your pool and delete the cloned nvram variables file: something is wrong with it somehow...
 
 Now you can start the VM and it enjoy far better speed than with the Ubuntu 20.04 server image...
+
+# Box it
+
+Remember to clear the machine ID !
+
+All of these instructions must be don in the box directory !
+
+The Vagrantfile that is contained in the box directory will be packed in the box and will be applied as default when using this box.
+
+## Getting the disk image
+
+Copy the target dick to a local sparse file:
+```
+qemu-img convert -O qcow2 /home/vm/big_pool/archboot_target.qcow2 ./box.img
+```
+
+## Packing
+
+I prepare my own Vagrantfile (see below) and metdata.json.
+
+Then I pack them together in a box file:
+```
+tar cvzf archlinux-aarch64.box ./metadata.json ./info.json ./Vagrantfile ./box.img
+```
+or faster:
+```
+tar cv -S --totals ./metadata.json ./info.json ./Vagrantfile ./box.img | pigz -c > archlinux-aarch64.box
+```
+
+And added the box to my local vagrant:
+```
+vagrant box add archlinux-aarch64.box --name archlinux-aarch64
+```

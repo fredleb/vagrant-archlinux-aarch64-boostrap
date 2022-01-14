@@ -66,3 +66,8 @@ nvram/
 
 ## guest/tmp is to be used for the downloaded image only, no need to track it
 guest/tmp/
+
+## box/ artifacts
+box/*.box
+box/*.img
+
