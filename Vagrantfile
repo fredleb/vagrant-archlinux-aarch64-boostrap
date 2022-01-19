@@ -157,6 +157,11 @@ Vagrant.configure("2") do |config|
         rm -rf yay"
     SHELL
 
+  config.vm.provision "shell", name: "Arch: make sshd accept RSA for public key encryption",
+    inline: <<-SHELL
+      printf "\n\n# Vagrant uses ssh-rsa\nHostkeyAlgorithms +ssh-rsa\nPubkeyAcceptedAlgorithms +ssh-rsa\n" >> /mnt/etc/ssh/sshd_config
+    SHELL
+
   config.vm.provision "shell", name: "Arch: empty pacman's cache",
     inline: <<-SHELL
       arch-chroot /mnt pacman -Scc --noconfirm
